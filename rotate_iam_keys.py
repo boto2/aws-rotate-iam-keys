@@ -4,7 +4,7 @@
 import boto3
 import argparse
 
-USERS_TO_EXCLUDE = ['jenkins']
+USERS_TO_EXCLUDE = ['jenkins', 'automation']
 
 
 def get_all_users(iam):
@@ -18,6 +18,8 @@ def delete_keys(users, iam):
     for user in users:
         if user not in USERS_TO_EXCLUDE:
             rotate_keys_for_user(user_name=user, iam=iam)
+        else:
+	    print "Skipping user {}".format(user)
 
 
 def rotate_keys_for_user(user_name, iam):
