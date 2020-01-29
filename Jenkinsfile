@@ -1,21 +1,12 @@
 pipeline {
-    agent any
+    agent {label 'aws-nodes'}
     stages {
-        stage('---clean---') {
+        stage('Rotate keys') {
             steps {
-                sh "make all"
+                sh '''
+                python rotate_iam_keys.py
+                '''
             }
         }
     }
-
-    // stage('--test--') {
-    //     steps {
-    //         sh "mvn test"
-    //     }
-    // }
-    // stage('--package--') {
-    //     steps {
-    //         sh "mvn package"
-    //     }
-    // }
 }
