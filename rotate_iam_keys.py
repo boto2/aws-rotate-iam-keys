@@ -3,8 +3,12 @@
 
 import boto3
 import argparse
+import jenkinsapi
+from jenkinsapi.credential import AmazonWebServicesCredentials
+
 
 USERS_TO_EXCLUDE = ['jenkins', 'automation']
+AWS_USER_TO_UPDATE = 'cs-testuser'
 
 
 def get_all_users(iam):
@@ -14,23 +18,39 @@ def get_all_users(iam):
     return all_users
 
 
-def delete_keys(users, iam):
+def delete_keys(users, iam, jenkins_conn, jenkins_credentials_description):
     for user in users:
         if user not in USERS_TO_EXCLUDE:
-            rotate_keys_for_user(user_name=user, iam=iam)
+            rotate_keys_for_user(user_name=user, iam=iam, jenkins_conn=jenkins_conn, jenkins_credentials_description=jenkins_credentials_description)
         else:
 	    print "Skipping user {}".format(user)
 
 
-def rotate_keys_for_user(user_name, iam):
-    all_keys = iam.list_access_keys(UserName=user_name).get("AccessKeyMetadata")
-    if all_keys is not None:
-        for key in all_keys:
-            key_id = key.get("AccessKeyId")
-            print "Deleting key {} for user {}".format(key_id, user_name)
-            iam.delete_access_key(UserName=user_name, AccessKeyId=key_id)
-        print "Creating a new key for user {}".format(user_name)
-        iam.create_access_key(UserName=user_name)
+def rotate_keys_for_user(user_name, iam, jenkins_conn, jenkins_credentials_description):
+    try:
+        all_keys = iam.list_access_keys(UserName=user_name).get("AccessKeyMetadata")
+        if all_keys is not None:
+            for key in all_keys:
+                key_id = key.get("AccessKeyId")
+                print "Deleting key {} for user {}".format(key_id, user_name)
+                iam.delete_access_key(UserName=user_name, AccessKeyId=key_id)
+            print "Creating a new key for user {}".format(user_name)
+            res = iam.create_access_key(UserName=user_name)
+            if user_name == AWS_USER_TO_UPDATE:
+                access_key = res.get("AccessKey")
+                key_id = access_key.get('AccessKeyId')
+                secret_key = access_key.get('SecretAccessKey')
+                creds = j.credentials
+                aws_creds = {
+                    'description': jenkins_credentials_description,
+                    'accessKey': key_id,
+                    'secretKey': secret_key
+                }
+                print "Updating Jenkins credentials {} with the AWS user name {} and with the key ID {}".format(jenkins_credentials_description, user_name, key_id)
+                creds[jenkins_credentials_description] = AmazonWebServicesCredentials(aws_creds)
+
+    except Exception as e:
+        print "There was an error"
 
 
 if __name__ == '__main__':
@@ -38,9 +58,24 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--profile-name',
                         default=None,
                         help='The aws profile name')
+    parser.add_argument('-u', '-jenkins-user',
+                        default=None,
+                        required=True,
+                        help='The jenkins user name')
+    parser.add_argument('-t', '--jenkins-password',
+                        default=None,
+                        required=True,
+                        help='The jenkins password')
+    parser.add_argument('-c', '--credentials-description',
+                        default=None,
+                        required=True,
+                        help='The jenkins credentials description')
     aws_profile_name = parser.parse_args().profile_name
+    jenkins_user = parser.parse_args().jenkins_user
+    jenkins_password = parser.parse_args().jenkins_password
+    jenkins_credentials_description = parse.parse_args().credentials_description
     session = boto3.Session(profile_name=aws_profile_name)
     iam_client = session.client('iam')
-
+    j = Jenkins(baseurl='http://34.217.211.46:8080', username=jenkins_user, password=jenkins_password)
     all_users = get_all_users(iam=iam_client)
-    delete_keys(users=all_users, iam=iam_client)
+    delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, jenkins_credentials_description=jenkins_credentials_description)
