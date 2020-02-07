@@ -58,7 +58,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--profile-name',
                         default=None,
                         help='The aws profile name')
-    parser.add_argument('-u', '-jenkins-user',
+    parser.add_argument('-u', '--jenkins-user',
                         default=None,
                         required=True,
                         help='The jenkins user name')
