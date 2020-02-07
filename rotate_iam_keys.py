@@ -3,7 +3,7 @@
 
 import boto3
 import argparse
-from jenkinsapi import jenkins
+from jenkinsapi.jenkins import Jenkins
 from jenkinsapi.credential import AmazonWebServicesCredentials
 
 
