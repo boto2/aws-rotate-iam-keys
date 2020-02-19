@@ -7,8 +7,8 @@ from jenkinsapi.jenkins import Jenkins
 from jenkinsapi.credential import AmazonWebServicesCredentials
 
 
-USERS_TO_EXCLUDE = ['jenkins', 'automation']
-AWS_USER_TO_UPDATE = 'cs-testuser'
+USERS_TO_EXCLUDE = ['jenkins', 'automation', 'cs-ansible', 'cs-testuser']
+AWS_USER_TO_UPDATE = 'test1'
 
 
 def get_all_users(iam):
@@ -76,6 +76,6 @@ if __name__ == '__main__':
     jenkins_credentials_description = parser.parse_args().credentials_description
     session = boto3.Session(profile_name=aws_profile_name)
     iam_client = session.client('iam')
-    j = Jenkins(baseurl='http://34.217.211.46:8080', username=jenkins_user, password=jenkins_password)
+    j = Jenkins(baseurl='http://54.188.119.25:8080/', username=jenkins_user, password=jenkins_password)
     all_users = get_all_users(iam=iam_client)
     delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, jenkins_credentials_description=jenkins_credentials_description)
