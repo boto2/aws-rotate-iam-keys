@@ -9,7 +9,14 @@ from jenkinsapi.credential import AmazonWebServicesCredentials
 
 USERS_TO_EXCLUDE = ['jenkins', 'automation', 'cs-ansible', 'cs-testuser']
 AWS_USER_TO_UPDATE = 'test1'
+AWS_JENKINS_USER_PARAMETER_STORE = '/Servers/Infra/Jenkins/UserName'
+AWS_JENKINS_PASSWORD_PARAMETER_STORE = '/Servers/Infra/Jenkins/Password'
 
+
+def get_parameter_store_value(parameter_key, session):
+    ssm_client = session.client('ssm')
+    res = ssm_client.get_parameter(Name=parameter_key,  WithDecryption=False)
+    return res.get('Parameter').get('Value')
 
 def get_all_users(iam):
     all_users = []
@@ -58,23 +65,25 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--profile-name',
                         default=None,
                         help='The aws profile name')
-    parser.add_argument('-u', '--jenkins-user',
-                        default=None,
-                        required=True,
-                        help='The jenkins user name')
-    parser.add_argument('-t', '--jenkins-password',
-                        default=None,
-                        required=True,
-                        help='The jenkins password')
+    # parser.add_argument('-u', '--jenkins-user',
+    #                     default=None,
+    #                     required=True,
+    #                     help='The jenkins user name')
+    # parser.add_argument('-t', '--jenkins-password',
+    #                     default=None,
+    #                     required=True,
+    #                     help='The jenkins password')
     parser.add_argument('-c', '--credentials-description',
                         default=None,
                         required=True,
                         help='The jenkins credentials description')
     aws_profile_name = parser.parse_args().profile_name
-    jenkins_user = parser.parse_args().jenkins_user
-    jenkins_password = parser.parse_args().jenkins_password
+    # jenkins_user = parser.parse_args().jenkins_user
+    # jenkins_password = parser.parse_args().jenkins_password
     jenkins_credentials_description = parser.parse_args().credentials_description
-    session = boto3.Session(profile_name=aws_profile_name)
+    session = boto3.Session(profile_name=aws_profile_name, region_name='us-east-1')
+    jenkins_user = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_USER_PARAMETER_STORE)
+    jenkins_password = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_PASSWORD_PARAMETER_STORE)
     iam_client = session.client('iam')
     j = Jenkins(baseurl='http://54.191.90.4:8080/', username=jenkins_user, password=jenkins_password)
     all_users = get_all_users(iam=iam_client)
