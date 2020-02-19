@@ -50,12 +50,12 @@ def rotate_keys_for_user(user_name, iam, jenkins_conn, jenkins_credentials_descr
                 key_id = access_key.get('AccessKeyId')
                 secret_key = access_key.get('SecretAccessKey')
                 user_dict = {
-                    "access_key": access_key,
-                    "key_id": key_id,
-                    "secret_key": secret_key
+                    "access_key": str(access_key),
+                    "key_id": str(key_id),
+                    "secret_key": str(secret_key)
                 }
                 with open('aws_creds.json', 'a') as f:
-                    f.write(json.dumps(user_dict, sort_keys=True, indent=4))
+                    f.write(json.dumps(user_dict, indent=4))
                 s3_client.list_objects(Bucket=S3_BUCKET_NAME)
                 print "Uploading the user credentials to {}".format(S3_BUCKET_NAME)
                 s3_client.upload_file('aws_creds.json', S3_BUCKET_NAME, 'aws_creds.json')
