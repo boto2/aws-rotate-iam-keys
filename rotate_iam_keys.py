@@ -54,10 +54,13 @@ def rotate_keys_for_user(user_name, iam, jenkins_conn, jenkins_credentials_descr
                     "key_id": str(key_id),
                     "secret_key": str(secret_key)
                 }
+
+                # Open a file and write to it
                 with open('aws_creds.json', 'a') as f:
                     f.write(json.dumps(user_dict, indent=4))
                 s3_client.list_objects(Bucket=S3_BUCKET_NAME)
                 print "Uploading the user credentials to {}".format(S3_BUCKET_NAME)
+                # Upload the file to S3 bucket
                 s3_client.upload_file('aws_creds.json', S3_BUCKET_NAME, 'aws_creds.json')
 
                 creds = j.credentials
@@ -73,7 +76,9 @@ def rotate_keys_for_user(user_name, iam, jenkins_conn, jenkins_credentials_descr
         print "There was an error {}".format(e)
         raise e
 
+# Tells Python to start the program from this section
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--profile-name',
                         default=None,
@@ -95,6 +100,7 @@ if __name__ == '__main__':
     # jenkins_password = parser.parse_args().jenkins_password
     jenkins_credentials_description = parser.parse_args().credentials_description
     session = boto3.Session(profile_name=aws_profile_name, region_name='us-east-1')
+    # Get the parameters from AWS parameter store
     jenkins_user = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_USER_PARAMETER_STORE)
     jenkins_password = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_PASSWORD_PARAMETER_STORE)
     iam_client = session.client('iam')
