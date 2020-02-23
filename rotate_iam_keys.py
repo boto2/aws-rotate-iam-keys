@@ -105,6 +105,6 @@ if __name__ == '__main__':
     jenkins_password = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_PASSWORD_PARAMETER_STORE)
     iam_client = session.client('iam')
     s3_client = session.client('s3')
-    j = Jenkins(baseurl='http://54.191.90.4:8080/', username=jenkins_user, password=jenkins_password)
+    j = Jenkins(baseurl='http://54.189.129.186:8080', username=jenkins_user, password=jenkins_password)
     all_users = get_all_users(iam=iam_client)
     delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, jenkins_credentials_description=jenkins_credentials_description, s3_client=s3_client)
