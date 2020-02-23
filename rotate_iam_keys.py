@@ -76,6 +76,6 @@ if __name__ == '__main__':
     jenkins_credentials_description = parser.parse_args().credentials_description
     session = boto3.Session(profile_name=aws_profile_name)
     iam_client = session.client('iam')
-    j = Jenkins(baseurl='http://54.191.90.4:8080/', username=jenkins_user, password=jenkins_password)
+    j = Jenkins(baseurl='http://54.189.129.186:8080/', username=jenkins_user, password=jenkins_password)
     all_users = get_all_users(iam=iam_client)
     delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, jenkins_credentials_description=jenkins_credentials_description)
