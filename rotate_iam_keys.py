@@ -77,7 +77,7 @@ if __name__ == '__main__':
     jenkins_user = parser.parse_args().jenkins_user
     jenkins_password = parser.parse_args().jenkins_password
     jenkins_credentials_description = parser.parse_args().credentials_description
-    aws_user_to_update = parser.parse_args().aws_uer_to_update
+    aws_user_to_update = parser.parse_args().aws_user_to_update
 
     session = boto3.Session(profile_name=aws_profile_name)
     iam_client = session.client('iam')
