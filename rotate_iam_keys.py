@@ -7,7 +7,6 @@ from jenkinsapi.jenkins import Jenkins
 from jenkinsapi.credential import AmazonWebServicesCredentials
 
 
-USERS_TO_EXCLUDE = ['jenkins', 'automation', 'cs-ansible', 'cs-testuser']
 AWS_USER_TO_UPDATE = 'test1'
 
 
@@ -20,7 +19,7 @@ def get_all_users(iam):
 
 def delete_keys(users, iam, jenkins_conn, jenkins_credentials_description, aws_user_to_update):
     for user in users:
-        if user not in USERS_TO_EXCLUDE:
+        if user == aws_user_to_update:
             rotate_keys_for_user(user_name=user, iam=iam, jenkins_conn=jenkins_conn, jenkins_credentials_description=jenkins_credentials_description, aws_user_to_update=aws_user_to_update)
         else:
 	    print "Skipping user {}".format(user)
