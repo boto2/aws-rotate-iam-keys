@@ -85,6 +85,6 @@ if __name__ == '__main__':
     print "ssl_verify={}".format(ssl_verify)
     session = boto3.Session(profile_name=aws_profile_name)
     iam_client = session.client('iam')
-    j = Jenkins(baseurl='http://34.217.0.162:8080', username=jenkins_user, password=jenkins_password, ssl_verify=ssl_verify)
+    j = Jenkins(baseurl='http://54.212.26.79:8080', username=jenkins_user, password=jenkins_password, ssl_verify=ssl_verify)
     all_users = get_all_users(iam=iam_client)
     delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, jenkins_credentials_description=jenkins_credentials_description, aws_user_to_update=aws_user_to_update)
