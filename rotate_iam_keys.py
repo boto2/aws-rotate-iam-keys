@@ -72,14 +72,19 @@ if __name__ == '__main__':
     parser.add_argument('--aws-user-to-update',
                         required=True,
                         help='The aws user to update')
+    parser.add_argument('--ssl-verify',
+                        required=False,
+                        action='store_false',
+                        help='Provide this argument if you want to use ssl verification')
     aws_profile_name = parser.parse_args().profile_name
     jenkins_user = parser.parse_args().jenkins_user
     jenkins_password = parser.parse_args().jenkins_password
     jenkins_credentials_description = parser.parse_args().credentials_description
     aws_user_to_update = parser.parse_args().aws_user_to_update
-
+    ssl_verify = parser.parse_args().ssl_verify 
+    print "ssl_verify={}".format(ssl_verify)
     session = boto3.Session(profile_name=aws_profile_name)
     iam_client = session.client('iam')
-    j = Jenkins(baseurl='http://34.217.0.162:8080', username=jenkins_user, password=jenkins_password)
+    j = Jenkins(baseurl='http://34.217.0.162:8080', username=jenkins_user, password=jenkins_password, ssl_verify=ssl_verify)
     all_users = get_all_users(iam=iam_client)
     delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, jenkins_credentials_description=jenkins_credentials_description, aws_user_to_update=aws_user_to_update)
