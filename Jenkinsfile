@@ -4,7 +4,7 @@ pipeline {
         stage('Rotate keys') {
             steps {
                 wrap([$class: 'BuildUser']) {
-                    slackSend color: good, message: "Starting key rotation by ${BUILD_USER}"
+                    slackSend color: 'good', message: "Starting key rotation by ${BUILD_USER}"
                 }
                 sh '''
                 echo "JENKINS_CREDENTIAL_DESCRIPTION=${JENKINS_CREDENTIAL_DESCRIPTION}"
