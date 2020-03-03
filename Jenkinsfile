@@ -17,7 +17,7 @@ pipeline {
     post {
         success {
             wrap([$class: 'BuildUser']) {
-                slackSend color: good, message: "Finished key rotation by ${BUILD_USER}"
+                slackSend color: 'good', message: "Finished key rotation by ${BUILD_USER}"
             } 
         }
     }
