@@ -75,7 +75,7 @@ def rotate_keys_for_user(iam, jenkins_conn, jenkins_credentials_description, aws
                 "accessKey": key_id,
                 "secretKey": secret_key
             }
-            print "Updating Jenkins credentials {} with the AWS user name {} and with the key ID {}".format(jenkins_credentials_description, user_name, key_id)
+            print "Updating Jenkins credentials {} with the AWS user name {} and with the key ID {}".format(jenkins_credentials_description, aws_user_to_update, key_id)
             creds[jenkins_credentials_description] = AmazonWebServicesCredentials(aws_creds)
 
     except Exception as e:
