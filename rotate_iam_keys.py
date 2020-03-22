@@ -99,7 +99,7 @@ if __name__ == '__main__':
                         required=True,
                         help='The users file name')
 
-    # aws_profile_name = parser.parse_args().profile_name
+    aws_profile_name = parser.parse_args().profile_name
     # jenkins_user = parser.parse_args().jenkins_user
     # jenkins_password = parser.parse_args().jenkins_password
     # jenkins_credentials_description = parser.parse_args().credentials_description
