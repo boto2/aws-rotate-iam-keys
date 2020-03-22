@@ -1,6 +1,6 @@
 
 pipeline {
-    agent {label 'aws-jenkins-node-1'}
+    agent {label 'aws-node2'}
     stages {
         stage('Rotate keys') {
             steps {
