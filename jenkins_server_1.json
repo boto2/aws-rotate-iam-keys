@@ -1,0 +1,14 @@
+[
+    {
+        "iam_user": "mike1",
+        "jenkins_description": "test1"
+    },
+    {
+        "iam_user": "mike2",
+        "jenkins_description": "test2"
+    },
+    {
+        "iam_user": "mike3",
+        "jenkins_description": "test3"
+    }
+]
