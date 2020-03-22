@@ -26,47 +26,54 @@ def get_all_users(iam):
     return all_users
 
 
-def delete_keys(users, iam, jenkins_conn, jenkins_credentials_description, aws_user_to_update, s3_client):
-    for user in users:
-        if user == aws_user_to_update:
-            rotate_keys_for_user(user_name=user, iam=iam, jenkins_conn=jenkins_conn, jenkins_credentials_description=jenkins_credentials_description, aws_user_to_update=aws_user_to_update, s3_client=s3_client)
+def delete_keys(users, iam, jenkins_conn, users_file_path, s3_client):
+    with open(users_file_path, 'rb') as f:
+        users_data =  json.load(f)
+    for user in users_data:
+        iam_user = user.get(iam_user)
+        jenkins_desc = user.get(jenkins_description)
+        print "iam_user={}".format(iam_user)
+        print "jenkins_description={}".format(jenkins_desc)
+        if iam_user in users:
+            rotate_keys_for_user(iam=iam, jenkins_conn=jenkins_conn, jenkins_credentials_description=jenkins_desc, aws_user_to_update=iam_user, s3_client=s3_client)
         else:
-            print "Skipping user {}".format(user)        
+            print "Skipping user {}".format(iam_user)
+               
 
 
-def rotate_keys_for_user(user_name, iam, jenkins_conn, jenkins_credentials_description, aws_user_to_update, s3_client):
+def rotate_keys_for_user(iam, jenkins_conn, jenkins_credentials_description, aws_user_to_update, s3_client):
     try:
-        all_keys = iam.list_access_keys(UserName=user_name).get("AccessKeyMetadata")
+        users_dicts = []
+        all_keys = iam.list_access_keys(UserName=aws_user_to_update).get("AccessKeyMetadata")
         if all_keys is not None:
             for key in all_keys:
                 key_id = key.get("AccessKeyId")
-                print "Deleting key {} for user {}".format(key_id, user_name)
-                iam.delete_access_key(UserName=user_name, AccessKeyId=key_id)
-            print "Creating a new key for user {}".format(user_name)
-            res = iam.create_access_key(UserName=user_name)                                     
-            if user_name == aws_user_to_update:
-                access_key = res.get("AccessKey")
-                key_id = access_key.get("AccessKeyId")
-                secret_key = access_key.get("SecretAccessKey")                
-                user_dict = {
-                    "access_key": str(access_key),
-                    "key_id": str(key_id),
-                    "secret_key": str(secret_key)
-                }
-                with open('aws_creds.json', 'a') as f:
-                    f.write(json.dumps(user_dict, indent=4))
-                    s3_client.list_objects(Bucket=S3_BUCKET_NAME)
-                    print "Uploading the user credentials to {}".format(S3_BUCKET_NAME)
-                    s3_client.upload_file('aws_creds.json', S3_BUCKET_NAME, 'aws_creds.json')
+                print "Deleting key {} for user {}".format(key_id, aws_user_to_update)
+                iam.delete_access_key(UserName=aws_user_to_update, AccessKeyId=key_id)
+            print "Creating a new key for user {}".format(aws_user_to_update)
+            res = iam.create_access_key(UserName=aws_user_to_update)                                     
+            access_key = res.get("AccessKey")
+            key_id = access_key.get("AccessKeyId")
+            secret_key = access_key.get("SecretAccessKey")                
+            user_dict = {
+                "access_key": str(access_key),
+                "key_id": str(key_id),
+                "secret_key": str(secret_key)
+            }
+            with open('aws_creds_{}.json'.format(aws_user_to_update), 'a') as f:
+                f.write(json.dumps(user_dict, indent=4))
+                s3_client.list_objects(Bucket=S3_BUCKET_NAME)
+                print "Uploading the user credentials to {}".format(S3_BUCKET_NAME)
+                s3_client.upload_file('aws_creds.json', S3_BUCKET_NAME, 'aws_creds.json')
 
-                creds = j.credentials                               
-                aws_creds = {
-                    "description": jenkins_credentials_description,
-                    "accessKey": key_id,
-                    "secretKey": secret_key
-                }
-                print "Updating Jenkins credentials {} with the AWS user name {} and with the key ID {}".format(jenkins_credentials_description, user_name, key_id)
-                creds[jenkins_credentials_description] = AmazonWebServicesCredentials(aws_creds)
+            creds = j.credentials                               
+            aws_creds = {
+                "description": jenkins_credentials_description,
+                "accessKey": key_id,
+                "secretKey": secret_key
+            }
+            print "Updating Jenkins credentials {} with the AWS user name {} and with the key ID {}".format(jenkins_credentials_description, user_name, key_id)
+            creds[jenkins_credentials_description] = AmazonWebServicesCredentials(aws_creds)
 
     except Exception as e:
         print "There was an error"
@@ -117,4 +124,4 @@ if __name__ == '__main__':
     s3_client = session.client('s3')
     j = Jenkins(baseurl='http://34.217.108.43:8080', username=jenkins_user, password=jenkins_password)
     all_users = get_all_users(iam=iam_client)
-    #delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, jenkins_credentials_description=jenkins_credentials_description, aws_user_to_update=aws_user_to_update, s3_client=s3_client)
+    delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, users_file_path=users_file_path, s3_client=s3_client)
