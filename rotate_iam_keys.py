@@ -27,11 +27,14 @@ def get_all_users(iam):
 
 
 def delete_keys(users, iam, jenkins_conn, users_file_path, s3_client):
+    users_data = []
     with open(users_file_path, 'rb') as f:
         users_data =  json.load(f)
+        print users_data
+        print type(users_data)
     for user in users_data:
-        iam_user = user.get(iam_user)
-        jenkins_desc = user.get(jenkins_description)
+        iam_user = user.get("iam_user")
+        jenkins_desc = user.get("jenkins_description")
         print "iam_user={}".format(iam_user)
         print "jenkins_description={}".format(jenkins_desc)
         if iam_user in users:
