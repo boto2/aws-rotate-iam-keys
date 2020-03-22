@@ -10,8 +10,8 @@ from jenkinsapi.credential import AmazonWebServicesCredentials
 
 
 AWS_USER_TO_UPDATE = ""
-AWS_JENKINS_USER_PARAMETER_STORE = "/Servers/Infra/Jenkins/UserName"
-AWS_JENKINS_PASSWORD_PARAMETER_STORE = "/Servers/Infra/Jenkins/Password"
+# AWS_JENKINS_USER_PARAMETER_STORE = "/Servers/Infra/Jenkins/UserName"
+# AWS_JENKINS_PASSWORD_PARAMETER_STORE = "/Servers/Infra/Jenkins/Password"
 S3_BUCKET_NAME = "personal-storage-mike"
 
 def get_parameter_store_value(parameter_key, session):
@@ -92,41 +92,37 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--profile-name',
                         default=None,
                         help='The aws profile name')
-    # parser.add_argument('-u', '--jenkins-user',
-    #                     default=None,
-    #                     required=True,
-    #                     help='The jenkins user name')
-    # parser.add_argument('-t', '--jenkins-password',
-    #                     default=None,
-    #                     required=True,
-    #                     help='The jenkins password')
-    # parser.add_argument('-c', '--credentials-description',
-    #                     default=None,
-    #                     required=True,
-    #                     help='The jenkins credentials description')
-    # parser.add_argument('--aws-user-to-update',
-    #                     required=True,
-    #                     help='The aws user to update')
+    parser.add_argument('-u', '--jenkins-user',
+                        default=None,
+                        required=True,
+                        help='The jenkins user name')
+    parser.add_argument('-t', '--jenkins-password',
+                        default=None,
+                        required=True,
+                        help='The jenkins password')
     parser.add_argument('--users-file-name',
                         required=True,
                         help='The users file name')
+    parser.add_argument('--jenkins-server',
+                        required=True,
+                        help='The server or IP of the jenkins')
 
     aws_profile_name = parser.parse_args().profile_name
-    # jenkins_user = parser.parse_args().jenkins_user
-    # jenkins_password = parser.parse_args().jenkins_password
-    # jenkins_credentials_description = parser.parse_args().credentials_description
-    # aws_user_to_update = parser.parse_args().aws_user_to_update
+    jenkins_user = parser.parse_args().jenkins_user
+    jenkins_password = parser.parse_args().jenkins_password
+    jenkins_server = parser.parse_args().jenkins_server
+    
     users_file_name = parser.parse_args().users_file_name
     session = boto3.Session(profile_name=aws_profile_name, region_name='us-east-1')
     pathname = os.path.dirname(sys.argv[0])
     script_path = os.path.abspath(pathname)
     users_file_path = os.path.join(script_path, users_file_name)
     print "users_file_path={}".format(users_file_path)
-    jenkins_user = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_USER_PARAMETER_STORE)
-    jenkins_password = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_PASSWORD_PARAMETER_STORE)
+    # jenkins_user = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_USER_PARAMETER_STORE)
+    # jenkins_password = get_parameter_store_value(session=session, parameter_key=AWS_JENKINS_PASSWORD_PARAMETER_STORE)
 
     iam_client = session.client('iam')
     s3_client = session.client('s3')
-    j = Jenkins(baseurl='http://34.217.108.43:8080', username=jenkins_user, password=jenkins_password)
+    j = Jenkins(baseurl=jenkins_server, username=jenkins_user, password=jenkins_password, lazy=True, timeout=30)
     all_users = get_all_users(iam=iam_client)
     delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, users_file_path=users_file_path, s3_client=s3_client)
