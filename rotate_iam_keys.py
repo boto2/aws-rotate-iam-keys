@@ -108,6 +108,6 @@ if __name__ == '__main__':
 
     iam_client = session.client('iam')
     s3_client = session.client('s3')
-    j = Jenkins(baseurl='http://54.190.28.175:8080', username=jenkins_user, password=jenkins_password, lazy=True)
+    j = Jenkins(baseurl='http://54.190.28.175:8080', username=jenkins_user, password=jenkins_password)
     all_users = get_all_users(iam=iam_client)
     delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, jenkins_credentials_description=jenkins_credentials_description, aws_user_to_update=aws_user_to_update, s3_client=s3_client)
