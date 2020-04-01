@@ -12,7 +12,7 @@ from jenkinsapi.credential import AmazonWebServicesCredentials
 AWS_USER_TO_UPDATE = ""
 # AWS_JENKINS_USER_PARAMETER_STORE = "/Servers/Infra/Jenkins/UserName"
 # AWS_JENKINS_PASSWORD_PARAMETER_STORE = "/Servers/Infra/Jenkins/Password"
-S3_BUCKET_NAME = "personal-storage-mike"
+S3_BUCKET_NAME = "personal-storage-mk2"
 
 def get_parameter_store_value(parameter_key, session):
     ssm_client = session.client('ssm')
