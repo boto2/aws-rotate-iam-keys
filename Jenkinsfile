@@ -3,9 +3,8 @@ pipeline {
     stages {
         stage('Rotate keys') {
             steps {
-                wrap([$class: 'BuildUser']) {
-	                slackSend color: 'good', message: "Starting `rotate-jen1-keys` by ${BUILD_USER}"
-                }                
+	            slackSend color: '#FFFF00', message: "STARTED: Job `${env.JOB_NAME}` [${env.BUILD_NUMBER}] (${env.BUILD_URL})"
+            
                 sh '''
                 echo "USERS_FILE_NAME=${USERS_FILE_NAME}"
                 python rotate_iam_keys.py --users-file-name "${USERS_FILE_NAME}" --jenkins-server "${JENKINS_SERVER}" --jenkins-user "${JENKINS_USER}" --jenkins-password "${JENKINS_PASSWORD}"
@@ -15,9 +14,10 @@ pipeline {
     }
     post {
         success {
-            wrap([$class: 'BuildUser']) {
-	            slackSend color: 'good', message: "Finished `rotate-jen1-keys` by ${BUILD_USER}"
-            }
+	        slackSend color: '#00FF00', message: "SUCCESSFUL: Job `${env.JOB_NAME}` [${env.BUILD_NUMBER}] (${env.BUILD_URL})"
+        }
+        failure {
+	        slackSend color: '#FF0000', message: "FAILED: Job `${env.JOB_NAME}` [${env.BUILD_NUMBER}] (${env.BUILD_URL})"
         }
     }
 }
