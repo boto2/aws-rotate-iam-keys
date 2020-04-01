@@ -9,15 +9,15 @@ from jenkinsapi.jenkins import Jenkins
 from jenkinsapi.credential import AmazonWebServicesCredentials
 
 
-AWS_USER_TO_UPDATE = ""
+# AWS_USER_TO_UPDATE = ""
 # AWS_JENKINS_USER_PARAMETER_STORE = "/Servers/Infra/Jenkins/UserName"
 # AWS_JENKINS_PASSWORD_PARAMETER_STORE = "/Servers/Infra/Jenkins/Password"
-S3_BUCKET_NAME = "personal-storage-mike"
+# S3_BUCKET_NAME = "personal-storage-mike"
 
-def get_parameter_store_value(parameter_key, session):
-    ssm_client = session.client('ssm')
-    res = ssm_client.get_parameter(Name=parameter_key, WithDecryption=False)
-    return res.get('Parameter').get('Value')
+# def get_parameter_store_value(parameter_key, session):
+#     ssm_client = session.client('ssm')
+#     res = ssm_client.get_parameter(Name=parameter_key, WithDecryption=False)
+#     return res.get('Parameter').get('Value')
 
 def get_all_users(iam):
     all_users = []
@@ -26,7 +26,7 @@ def get_all_users(iam):
     return all_users
 
 
-def delete_keys(users, iam, jenkins_conn, users_file_path, s3_client):
+def delete_keys(users, iam, jenkins_conn, users_file_path, s3_client, s3_bucket_name):
     users_data = []
     with open(users_file_path, 'rb') as f:
         users_data =  json.load(f)
@@ -38,13 +38,13 @@ def delete_keys(users, iam, jenkins_conn, users_file_path, s3_client):
         print "iam_user={}".format(iam_user)
         print "jenkins_description={}".format(jenkins_desc)
         if iam_user in users:
-            rotate_keys_for_user(iam=iam, jenkins_conn=jenkins_conn, jenkins_credentials_description=jenkins_desc, aws_user_to_update=iam_user, s3_client=s3_client)
+            rotate_keys_for_user(iam=iam, jenkins_conn=jenkins_conn, jenkins_credentials_description=jenkins_desc, aws_user_to_update=iam_user, s3_client=s3_client, s3_bucket_name=s3_bucket_name)
         else:
             print "Skipping user {}".format(iam_user)
                
 
 
-def rotate_keys_for_user(iam, jenkins_conn, jenkins_credentials_description, aws_user_to_update, s3_client):
+def rotate_keys_for_user(iam, jenkins_conn, jenkins_credentials_description, aws_user_to_update, s3_client, s3_bucket_name):
     try:
         users_dicts = []
         all_keys = iam.list_access_keys(UserName=aws_user_to_update).get("AccessKeyMetadata")
@@ -66,10 +66,10 @@ def rotate_keys_for_user(iam, jenkins_conn, jenkins_credentials_description, aws
             print user_dict
             with open('aws_creds.json', 'wb') as f:
                 f.write(json.dumps(user_dict, indent=4))
-            s3_client.list_objects(Bucket=S3_BUCKET_NAME)
-            print "Uploading the user {} credentials to {}".format(aws_user_to_update, S3_BUCKET_NAME)
+            s3_client.list_objects(Bucket=s3_bucket_name)
+            print "Uploading the user {} credentials to {}".format(aws_user_to_update, s3_bucket_name)
             s3_dest_key = "aws_creds_{}.json".format(aws_user_to_update)
-            s3_client.upload_file('aws_creds.json', S3_BUCKET_NAME, s3_dest_key)
+            s3_client.upload_file('aws_creds.json', s3_bucket_name, s3_dest_key)
 
             creds = j.credentials                               
             aws_creds = {
@@ -106,11 +106,15 @@ if __name__ == '__main__':
     parser.add_argument('--jenkins-server',
                         required=True,
                         help='The server or IP of the jenkins')
+    parser.add_argument('--s3-bucket',
+                        required=True,
+                        help='The s3 bucket name')
 
     aws_profile_name = parser.parse_args().profile_name
     jenkins_user = parser.parse_args().jenkins_user
     jenkins_password = parser.parse_args().jenkins_password
     jenkins_server = parser.parse_args().jenkins_server
+    s3_bucket_name = parser.parse_args().s3_bucket
     
     users_file_name = parser.parse_args().users_file_name
     session = boto3.Session(profile_name=aws_profile_name, region_name='us-east-1')
@@ -125,4 +129,4 @@ if __name__ == '__main__':
     s3_client = session.client('s3')
     j = Jenkins(baseurl=jenkins_server, username=jenkins_user, password=jenkins_password, lazy=True, timeout=30)
     all_users = get_all_users(iam=iam_client)
-    delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, users_file_path=users_file_path, s3_client=s3_client)
+    delete_keys(users=all_users, iam=iam_client, jenkins_conn=j, users_file_path=users_file_path, s3_client=s3_client, s3_bucket_name=s3_bucket_name)
